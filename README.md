@@ -135,7 +135,37 @@ A URL base para acessar a API, ao rodar localmente, é `http://127.0.0.1:8000/ap
                 "produtor": 900,
                 "afiliado": 0
             },
-            "id": "a1b2c3d4-e5f6-a7b8-c9
+            "id": "a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6"
+        },
+        {
+            "valor_total": 1500,
+            "tipo_venda": "afiliada",
+            "comissoes": {
+                "plataforma": 150,
+                "produtor": 900,
+                "afiliado": 450
+            },
+            "id": "9c8e1a1b-1b1c-4b1d-8e1f-1a1b1c1d1e1f"
+        }
+    ]
+    ```
+
+---
+
+### **3. Remover uma Simulação**
+
+-   **Endpoint:** `DELETE /api/sales/{id}`
+-   **Descrição:** Apaga permanentemente uma simulação de venda com base no seu ID.
+
+-   **Exemplo `cURL`:**
+    *Primeiro, copie um `id` da resposta do endpoint de listagem (`GET /api/sales`).*
+    ```bash
+    curl -X DELETE [http://127.0.0.1:8000/api/sales/9c8e1a1b-1b1c-4b1d-8e1f-1a1b1c1d1e1f](http://127.0.0.1:8000/api/sales/9c8e1a1b-1b1c-4b1d-8e1f-1a1b1c1d1e1f)
+    ```
+
+-   **Resposta de Sucesso (204 No Content):**
+    -   A API retornará uma resposta vazia com o status `204`, que significa que a operação foi bem-sucedida e não há conteúdo a ser exibido. Se o ID não for encontrado, retornará um erro `404 Not Found`.
+
 
 ## 5. Algumas Notas Finais
 
