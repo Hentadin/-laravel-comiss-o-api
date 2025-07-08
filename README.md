@@ -1,61 +1,144 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# API de Simulação de Comissão de Vendas
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Laravel 11**.
 
-## About Laravel
+## 1. Estrutura do Projeto
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Minha prioridade na arquitetura foi seguir os princípios **SOLID** para ter um código limpo, fácil de testar e de dar manutenção. A organização ficou assim:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+-   `app/Http/Controllers/Api/SaleController.php`
+-   `app/Services/CommissionService.php`
+-   `app/Services/SaleStorageService.php`
+-   `app/Http/Requests/StoreSaleRequest.php`
+-   `routes/api.php`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+A lógica de negócio mais importante, o cálculo das comissões, ficou isolada no `CommissionService` assim usando o conceito de SRP.
 
-## Learning Laravel
+## 2. Minhas Decisões em Pontos-Chave
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+O desafio deixou algumas questões em aberto. Abaixo, explico as decisões que tomei:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+#### a. Como Salvar os Dados?
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+-   **O Problema:** O requisito pedia para simular a persistência de dados sem um banco de dados real.
+-   **Minha Solução:** Optei por usar um **arquivo JSON** para guardar as simulações.
+-   **Por quê?** Arrays em memória seriam perdidos entre as requisições. O arquivo JSON garantiu uma persistência real para que os endpoints `GET` e `DELETE` funcionassem corretamente.
 
-## Laravel Sponsors
+#### b. Como Gerar IDs Únicos?
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+-   **O Problema:** Com um endpoint `DELETE /sales/{id}`, eu precisava de um ID único para cada venda, mas não tinha um banco com auto-incremento.
+-   **Minha Solução:** Usei o helper `Str::uuid()` do Laravel.
+-   **Por quê?** UUID é a solução padrão da indústria para gerar IDs únicos em cenários como este, garantindo unicidade sem depender de um estado central.
 
-### Premium Partners
+#### c. E se Algo Der Errado?
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+-   **O Problema:** O desafio focava nos caminhos de sucesso, mas uma boa API precisa tratar bem os erros.
+-   **Minha Solução:** Implementei o tratamento de erros seguindo os padrões de APIs REST.
+-   **Por quê?** A API retorna erros `422` para dados de entrada inválidos e `404` para recursos não encontrados, tornando-a mais previsível e robusta.
 
-## Contributing
+## 3. Como Rodar o Projeto
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Para rodar o projeto na sua máquina, siga estes passos:
 
-## Code of Conduct
+**Você vai precisar de:** PHP >= 8.2 e Composer.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1.  **Clone o projeto:**
+    ```bash
+    git clone [https://github.com/Hentadin/-laravel-comiss-o-api.git](https://github.com/Hentadin/-laravel-comiss-o-api.git)
+    cd -laravel-comiss-o-api
+    ```
 
-## Security Vulnerabilities
+2.  **Instale as dependências:**
+    ```bash
+    composer install
+    ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3.  **Configure o ambiente:**
+    *Este projeto foi feito com Laravel 11. Os passos abaixo preparam o ambiente corretamente.*
+    ```bash
+    # Copia o arquivo de ambiente
+    cp .env.example .env
 
-## License
+    # Gera a chave da aplicação
+    php artisan key:generate
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    # Prepara as rotas de API
+    php artisan install:api
+
+    # Cria o nosso "banco de dados" em JSON
+    touch storage/app/sales.json
+    echo "[]" > storage/app/sales.json
+    ```
+
+4.  **Inicie o servidor:**
+    ```bash
+    php artisan serve
+    ```
+    Pronto! A API estará rodando em `http://127.0.0.1:8000`.
+
+## 4. Como Usar a API (Endpoints)
+
+A URL base para acessar a API, ao rodar localmente, é `http://127.0.0.1:8000/api`. Todos os endpoints abaixo são relativos a essa URL.
+
+---
+
+### **1. Registrar uma Simulação de Venda**
+
+-   **Endpoint:** `POST /api/sales`
+-   **Descrição:** Cria uma nova simulação de venda com base no valor total e no tipo, e retorna os dados completos com as comissões calculadas e um ID único.
+
+-   **Exemplo `cURL`:**
+    ```bash
+    curl -X POST [http://127.0.0.1:8000/api/sales](http://127.0.0.1:8000/api/sales) \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -d '{
+        "valor_total": 1500,
+        "tipo_venda": "afiliada"
+    }'
+    ```
+
+-   **Resposta de Sucesso (201 Created):**
+    ```json
+    {
+        "valor_total": 1500,
+        "tipo_venda": "afiliada",
+        "comissoes": {
+            "plataforma": 150,
+            "produtor": 900,
+            "afiliado": 450
+        },
+        "id": "9c8e1a1b-1b1c-4b1d-8e1f-1a1b1c1d1e1f"
+    }
+    ```
+
+---
+
+### **2. Listar Todas as Simulações**
+
+-   **Endpoint:** `GET /api/sales`
+-   **Descrição:** Retorna uma lista com todas as simulações de vendas que foram registradas.
+
+-   **Exemplo `cURL`:**
+    ```bash
+    curl -X GET [http://127.0.0.1:8000/api/sales](http://127.0.0.1:8000/api/sales)
+    ```
+
+-   **Resposta de Sucesso (200 OK):**
+    ```json
+    [
+        {
+            "valor_total": 1000,
+            "tipo_venda": "direta",
+            "comissoes": {
+                "plataforma": 100,
+                "produtor": 900,
+                "afiliado": 0
+            },
+            "id": "a1b2c3d4-e5f6-a7b8-c9
+
+## 5. Algumas Notas Finais
+
+-   **Escalabilidade:** A arquitetura com Services foi pensada para facilitar a escalabilidade. Se for preciso usar um banco de dados no futuro, basta trocar a implementação do `SaleStorageService` sem precisar alterar outras partes do código.
+
+-   **Testabilidade:** Isolar a lógica em classes de serviço também facilita (e muito) a criação de testes unitários, permitindo validar as regras de negócio de forma rápida e independente do resto do framework.
